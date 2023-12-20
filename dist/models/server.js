@@ -32,7 +32,7 @@ class Server {
     }
     async dbConnection() {
         try {
-            await connection_1.default.sync({ alter: true });
+            await connection_1.default.sync();
             console.log("Data Conecction successful");
         }
         catch (error) {
@@ -40,14 +40,18 @@ class Server {
         }
     }
     middlewares() {
-        this.app.use((0, cors_1.default)({
-            origin: 'http://localhost:5173'
-        }));
+        this.app.options("*", (0, cors_1.default)()); // Agrega esta línea para manejar preflight requests
         this.app.use(express_1.default.static("public"));
         this.app.use((0, compression_1.default)());
         this.app.use((0, helmet_1.default)());
     }
     routes() {
+        this.app.use(this.apiPaths.usuarios, (req, res, next) => {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            next();
+        });
         this.app.use(this.apiPaths.usuarios, usuario_1.default);
         this.app.use(this.apiPaths.shoe, Shoe_1.default);
     }

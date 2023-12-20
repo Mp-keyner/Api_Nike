@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 import express, { Application } from "express";
 import userRoutes from "../routes/usuario";
@@ -7,9 +7,8 @@ import morgan from "morgan";
 import bodyParser from "body-parser";
 import cors from "cors";
 import db from "../db/connection";
-import compression from 'compression';
-import helmet from 'helmet';
-
+import compression from "compression";
+import helmet from "helmet";
 
 class Server {
   private app: Application;
@@ -32,7 +31,7 @@ class Server {
 
   async dbConnection() {
     try {
-      await db.sync({ alter: true });
+      await db.sync();
       console.log("Data Conecction successful");
     } catch (error: any) {
       throw new Error(error);
@@ -40,17 +39,20 @@ class Server {
   }
 
   middlewares() {
-    this.app.use(cors({
-      origin: 'http://localhost:5173'
-     }));
+    this.app.options("*", cors()); // Agrega esta línea para manejar preflight requests
     this.app.use(express.static("public"));
     this.app.use(compression());
     this.app.use(helmet());
   }
   routes() {
+    this.app.use(this.apiPaths.usuarios, (req, res, next) => {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+      next();
+    });
     this.app.use(this.apiPaths.usuarios, userRoutes);
     this.app.use(this.apiPaths.shoe, ShoesRoutes);
-
   }
 
   listen() {
